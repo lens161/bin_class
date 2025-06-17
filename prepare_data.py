@@ -1,7 +1,7 @@
 import glob
 import os
-import shutil
 import random
+import shutil
 
 print("enter dataset name:")
 dataset_name = input()
@@ -25,13 +25,14 @@ val_dir_c2 = os.path.join(data_dir, "validate", c2)
 for dir in [train_dir_c1, train_dir_c2, test_dir_c1, test_dir_c2, val_dir_c1, val_dir_c2]:
     os.makedirs(dir, exist_ok=True)
 
+# get all filepaths by class and put in list per class 
 c1_all = glob.glob(f"{train_dir_parent}/{c1}*")
 c2_all = glob.glob(f"{train_dir_parent}/{c2}*")
 random.shuffle(c1_all)
 random.shuffle(c2_all)
 
-# split off 20% of the training data to be used for validation during training 
 def split_move(imgs, train_ratio, train_dir, val_dir):
+    '''split off 20% of the training data to be used for validation during training. move to correct folder'''
     split_idx = int(len(imgs) * train_ratio)
     print(split_idx)
     train_files = imgs[:split_idx]
