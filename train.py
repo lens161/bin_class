@@ -6,6 +6,7 @@ from torchvision import datasets, models, transforms
 from torch.nn.modules.loss import BCEWithLogitsLoss
 from torch.optim import lr_scheduler
 from tqdm import tqdm
+import utils as ut
 
 def prepare(dataset_name):
     train_dir = f"data/{dataset_name}/train"
@@ -30,7 +31,8 @@ def prepare(dataset_name):
     print(f"num iterations in train loader = {len(train_loader)}")
     val_loader = torch.utils.data.DataLoader(val_dataset, shuffle=True, batch_size=512)
 
-    device = torch.device("mps") # TODO: make adaptive to system 
+    device = ut.get_best_device()
+    print(f"using device {device}")
 
     model = models.resnet18(pretrained=True) #use pretrained resnet model
 
