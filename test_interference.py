@@ -1,12 +1,13 @@
 import glob
 import os
 import torch
+import numpy as np 
 from torchvision import models, transforms
 from torchvision.io import read_image
 import torch.nn as nn
 import matplotlib.pyplot as plt
 
-#TODO: read test data per cathegory from folders and test inference
+#TODO: pretrained parameter for resnet model is deprecated. switch to new alternative at some point
 
 def load_model(model_path):
     device = torch.device("cpu")
@@ -30,12 +31,23 @@ def forward(image_tensor, model, correct):
     with torch.no_grad():
         prediction = torch.sigmoid(model(image_tensor))
 
-    if prediction.item() < 0.5:
-        print(f"prediction: C1 correct: {correct}")
-    else:
-        print(f"prediction: C2 correct: {correct}")
+    predicted_class = ""
 
+    if prediction.item() < 0.5:
+        predicted_class = "C1"
+    else:
+        predicted_class = "C2"
     # show_image(image_tensor)
+    return 1 if predicted_class == correct else 0
+
+
+def forward_all(list, model, correct):
+    results = np.zeros(len(list), dtype=np.uint8)
+
+    for i, item in enumerate(list):
+        results[i] = forward(item, model, correct)
+
+    return results, np.count_nonzero(results==1)/len(list)
 
 def show_image(image_tensor):
     mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
@@ -60,17 +72,40 @@ def image_to_tensor(image_path):
     image = image.unsqueeze(0)
     return image
 
+def load_test_data(path):
+    c1_path = os.path.join(path, "C1")
+    c2_path = os.path.join(path, "C2")
+    c1_files = glob.glob(f"{c1_path}/*")
+    c2_files = glob.glob(f"{c2_path}/*")
+
+    c1_tensors = []
+    c2_tensors = []
+
+    for item in c1_files:
+        item = image_to_tensor(item)
+        c1_tensors.append(item)
+
+    for item in c2_files:
+        item = image_to_tensor(item)
+        c2_tensors.append(item)
+
+    return c1_tensors, c2_tensors
+
 if __name__ == "__main__":
 
     print("enter name of the dataset used:")
     model_name = input()
     model_path = os.path.join("models", f"{model_name}.pt")
-    C2_image_path = os.path.join("data/archive/test", "1.jpg")
-    C1_image_path = os.path.join("data/archive/test", "8.jpg")
-    C2_tensor = image_to_tensor(C2_image_path)
-    C1_tensor = image_to_tensor(C1_image_path)
+    # C2_image_path = os.path.join("data/archive/test", "1.jpg")
+    # C1_image_path = os.path.join("data/archive/test", "8.jpg")
+    # C2_tensor = image_to_tensor(C2_image_path)
+    # C1_tensor = image_to_tensor(C1_image_path)
 
     model = load_model(model_path)
+    c1_test, c2_test = load_test_data("data/archive/test")
 
-    forward(C1_tensor, model, "C1")
-    forward(C2_tensor, model, "C2")
+    _, c1_precicison = forward_all(c1_test, model, "C1") 
+    _, c2_precicison = forward_all(c2_test, model, "C2") 
+
+    print(f"C1 precicison = {c1_precicison}")
+    print(f"C2 precicison = {c2_precicison}")

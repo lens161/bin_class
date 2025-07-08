@@ -8,6 +8,8 @@ from torch.optim import lr_scheduler
 from tqdm import tqdm
 import utils as ut
 
+#TODO: pretrained parameter for resnet model is deprecated. switch to new alternative at some point
+
 def prepare(dataset_name):
     train_dir = f"data/{dataset_name}/train"
     val_dir = f"data/{dataset_name}/validate"
